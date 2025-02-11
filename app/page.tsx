@@ -279,7 +279,7 @@ export default function FutureSelfChat() {
                   </CardTitle>
                 </div>
                 <div 
-                  className="flex items-center space-x-3 bg-gray-100 dark:bg-gray-700 p-2 md:p-3 rounded-lg cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors w-full md:w-auto"
+                  className="flex items-center space-x-3 bg-gray-100 dark:bg-gray-700 p-2 md:p-3 rounded-lg cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors w-full md:w-auto active:bg-gray-300 dark:active:bg-gray-500"
                   onClick={() => setChatInput(prev => ({ ...prev, isOldSelf: !prev.isOldSelf }))}
                 >
                   <Switch 
@@ -290,11 +290,13 @@ export default function FutureSelfChat() {
                   />
                   <Label 
                     htmlFor="persona-switch" 
-                    className={`dark:text-white ${chatInput.isOldSelf ? 'font-semibold' : ''} cursor-pointer text-sm md:text-base`}
+                    className={`dark:text-white ${chatInput.isOldSelf ? 'font-semibold' : ''} cursor-pointer text-sm md:text-base flex-1`}
                   >
                     {chatInput.isOldSelf ? "85-Year-Old Self" : "Current Self"}
+                    <span className="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      Tap to switch {chatInput.isOldSelf ? "back" : "persona"}
+                    </span>
                   </Label>
-                  <span className="text-xs text-gray-500 dark:text-gray-400 hidden md:inline">(Space)</span>
                 </div>
               </CardHeader>
               <CardContent className="p-3 md:p-6">
