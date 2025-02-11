@@ -128,7 +128,7 @@ export default function FutureSelfChat() {
     window.addEventListener('keydown', handleKeyPress)
     return () => window.removeEventListener('keydown', handleKeyPress)
   }, [])
-
+//
   useEffect(() => {
     const checkMobileView = () => {
       setIsMobileView(window.innerWidth < 768) // 768px is the md breakpoint
