@@ -8,6 +8,8 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { PlusCircle, Edit2, Moon, Sun, Trash2, ArrowLeft } from "lucide-react"
+import { initializeApp } from "firebase/app"
+import { getFirestore, collection, doc, setDoc, getDoc, updateDoc } from 'firebase/firestore'
 
 type Message = {
   content: string
@@ -21,6 +23,22 @@ type Chat = {
   messages: Message[]
 }
 
+// Add Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyCc0oSHlqlX7fLeqqonODsOIC3XA8NI7hc",
+  authDomain: "onboarding-a5fcb.firebaseapp.com",
+  databaseURL: "https://onboarding-a5fcb-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "onboarding-a5fcb",
+  storageBucket: "onboarding-a5fcb.appspot.com",
+  messagingSenderId: "334607574757",
+  appId: "1:334607574757:web:2603a69bf85f4a1e87960c",
+  measurementId: "G-2C9J1RY67L"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig)
+const firestore = getFirestore(app)
+
 function ClientOnly({ children }: { children: React.ReactNode }) {
   const [isClient, setIsClient] = useState(false)
 
@@ -29,25 +47,6 @@ function ClientOnly({ children }: { children: React.ReactNode }) {
   }, [])
 
   return isClient ? children : null
-}
-
-function getDatabase(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open('futureSelfChat', 1)
-    
-    request.onerror = () => reject(request.error)
-    request.onsuccess = () => resolve(request.result)
-    
-    request.onupgradeneeded = (event) => {
-      const db = request.result
-      if (!db.objectStoreNames.contains('chats')) {
-        db.createObjectStore('chats', { keyPath: 'id' })
-      }
-      if (!db.objectStoreNames.contains('settings')) {
-        db.createObjectStore('settings')
-      }
-    }
-  })
 }
 
 export default function FutureSelfChat() {
@@ -65,18 +64,17 @@ export default function FutureSelfChat() {
   useEffect(() => {
     async function loadInitialData() {
       try {
-        const db = await getDatabase()
-        
-        // Load chats
-        const transaction = db.transaction(['chats', 'settings'], 'readonly')
-        const chatStore = transaction.objectStore('chats')
-        const settingsStore = transaction.objectStore('settings')
-        
-        const chatsRequest = chatStore.getAll()
-        const darkModeRequest = settingsStore.get('darkMode')
-        
-        chatsRequest.onsuccess = () => setChats(chatsRequest.result || [])
-        darkModeRequest.onsuccess = () => setDarkMode(darkModeRequest.result ?? false)
+        // Load chats from solomon collection
+        const chatsDoc = await getDoc(doc(firestore, 'solomon', 'chats'))
+        if (chatsDoc.exists()) {
+          setChats(chatsDoc.data().chats || [])
+        }
+
+        // Load settings from solomon collection
+        const settingsDoc = await getDoc(doc(firestore, 'solomon', 'settings'))
+        if (settingsDoc.exists()) {
+          setDarkMode(settingsDoc.data().darkMode ?? false)
+        }
       } catch (error) {
         console.error('Error loading data:', error)
       }
@@ -87,15 +85,7 @@ export default function FutureSelfChat() {
   useEffect(() => {
     async function saveChats() {
       try {
-        const db = await getDatabase()
-        const transaction = db.transaction('chats', 'readwrite')
-        const store = transaction.objectStore('chats')
-        
-        // Clear existing chats
-        store.clear()
-        
-        // Add all current chats
-        chats.forEach(chat => store.add(chat))
+        await setDoc(doc(firestore, 'solomon', 'chats'), { chats })
       } catch (error) {
         console.error('Error saving chats:', error)
       }
@@ -106,10 +96,7 @@ export default function FutureSelfChat() {
   useEffect(() => {
     async function saveDarkMode() {
       try {
-        const db = await getDatabase()
-        const transaction = db.transaction('settings', 'readwrite')
-        const store = transaction.objectStore('settings')
-        store.put(darkMode, 'darkMode')
+        await setDoc(doc(firestore, 'solomon', 'settings'), { darkMode })
       } catch (error) {
         console.error('Error saving dark mode:', error)
       }
